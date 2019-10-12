@@ -32,7 +32,8 @@ TM1640_CMD1 = const(64)  # 0x40 data command
 TM1640_CMD2 = const(192) # 0xC0 address command
 TM1640_CMD3 = const(128) # 0x80 display control command
 TM1640_DSP_ON = const(8) # 0x08 display on
-TM1640_DELAY = const(10) # 10us delay between clk/dio pulses
+# Appears to work fine without a delay? Scrolls *much* faster!
+TM1640_DELAY = const(0) # 10us delay between clk/dio pulses
 
 class TM1640(object):
     """Library for LED matrix display modules based on the TM1640 LED driver."""
@@ -125,3 +126,33 @@ class TM1640(object):
 
         self._stop()
         self._write_dsp_ctrl()
+
+import framebuf
+from time import sleep_ms
+
+def display_letter(tm1640, letter):
+    buf = bytearray(8)
+    fb = framebuf.FrameBuffer(buf, 8, 8, framebuf.MONO_HMSB)
+    fb.text(letter, 0, 0, 1)
+    tm1640.write_hmsb(buf)
+
+def scroll_text(tm1640, text, delay=40):
+    buf = bytearray(8)
+    fb = framebuf.FrameBuffer(buf, 8, 8, framebuf.MONO_HMSB)
+    distance = len(text) * 8
+    for i in range(distance):
+        fb.fill(0)
+        fb.text(text, -i, 0, 1)
+        tm1640.write_hmsb(buf)
+        sleep_ms(delay)
+
+from asyncio import sleep_ms as a_sleep_ms
+async def async_scroll_text(tm1640, text, delay=40):
+    buf = bytearray(8)
+    fb = framebuf.FrameBuffer(buf, 8, 8, framebuf.MONO_HMSB)
+    distance = len(text) * 8
+    for i in range(distance):
+        fb.fill(0)
+        fb.text(text, -i, 0, 1)
+        tm1640.write_hmsb(buf)
+        await a_sleep_ms(delay)
