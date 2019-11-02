@@ -146,7 +146,7 @@ def scroll_text(tm1640, text, delay=40):
         tm1640.write_hmsb(buf)
         sleep_ms(delay)
 
-from asyncio import sleep_ms as a_sleep_ms
+from uasyncio import sleep_ms as a_sleep_ms
 async def async_scroll_text(tm1640, text, delay=40):
     buf = bytearray(8)
     fb = framebuf.FrameBuffer(buf, 8, 8, framebuf.MONO_HMSB)
